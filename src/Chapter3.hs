@@ -342,7 +342,7 @@ afterwards.
 Define the Book product data type. You can take inspiration from our description
 of a book, but you are not limited only by the book properties we described.
 Create your own book type of your dreams!
-
+-}
 data Book = Book
     { name :: String
     , author :: String
@@ -350,7 +350,6 @@ data Book = Book
     }
 type Page = Int
 
--}
 
 {- |
 =⚔️= Task 2
@@ -625,6 +624,7 @@ introducing extra newtypes.
 🕯 HINT: if you complete this task properly, you don't need to change the
     implementation of the "hitPlayer" function at all!
 -}
+
 newtype Health = Health { unHealth :: Int } deriving (Eq, Show)
 newtype Strength = Strength { unStrength :: Int } deriving (Eq, Show)
 newtype Attack = Attack { unAttack :: Int } deriving (Eq, Show)
@@ -995,8 +995,21 @@ Implement instances of "Append" for the following types:
   ✧ *(Challenge): "Maybe" where append is appending of values inside "Just" constructors
 
 -}
+
+newtype MyGold = MyGold { unMyGold :: Int } deriving (Eq, Show)
+
 class Append a where
     append :: a -> a -> a
+
+instance Append MyGold where
+    append (MyGold g1) (MyGold g2) = MyGold (g1+g2)
+
+instance Append a => Append (Maybe a) where
+    --append :: Append a => Maybe a -> Maybe a ->  Maybe a
+    append (Just a) (Just b) = Just (append a b)
+    append (Just a) Nothing = Just a
+    append Nothing (Just b) = Just b
+    append Nothing Nothing = Nothing
 
 
 {-
@@ -1059,6 +1072,19 @@ implement the following functions:
 🕯 HINT: to implement this task, derive some standard typeclasses
 -}
 
+data DayOfWeek = Sun | Mon | Tue | Wed | Thu | Fri | Sat
+  deriving (Eq,Show,Enum)
+
+isWeekend :: DayOfWeek -> Bool
+isWeekend Sat = True
+isWeekend _ = False
+
+nextDay :: DayOfWeek -> DayOfWeek
+nextDay day = toEnum $ mod (fromEnum day + 1) 7
+
+daysToParty :: DayOfWeek -> Int
+daysToParty day = flip mod 7 $ fromEnum Fri - fromEnum day
+
 {-
 =💣= Task 9*
 
@@ -1093,6 +1119,55 @@ properties using typeclasses, but they are different data types in the end.
 Implement data types and typeclasses, describing such a battle between two
 contestants, and write a function that decides the outcome of a fight!
 -}
+
+data KnightAction = KAttack | Spell | Drink deriving (Eq,Enum)
+data MonsterAction = MAttack | RunAway deriving (Eq,Enum)
+
+data MyKnight = MyKnight
+  { knightHealth :: Health
+  , knightAttack :: Attack
+  , knightDefense :: Defense
+  , knightActions :: [KnightAction]
+  }
+data MyMonster = MyMonster
+  { monsterHealth :: Health
+  , monsterAttack :: Attack
+  , monsterActions :: [MonsterAction]
+  }
+
+class Action a where
+  act :: [a] -> (a,[a])
+
+instance Action KnightAction where
+  act (x:xs) = (x,xs)
+instance Action MonsterAction where
+  act (x:xs) = (x,xs)
+
+class TypeFighter a where
+  _attack :: a -> Attack
+
+instance TypeFighter MyKnight where
+  _attack :: MyKnight -> Attack
+  _attack k = knightAttack k
+
+instance TypeFighter MyMonster where
+  _attack :: MyMonster -> Attack
+  _attack m = monsterAttack m
+
+hit :: Attack -> Health -> Maybe Defense -> Health
+hit (Attack a) (Health h) (Just (Defense d)) = Health (h + d - a)
+hit (Attack a) (Health h) Nothing = Health (h - a)
+
+drink :: MyKnight -> MyKnight
+drink k = k{knightHealth = Health (h + 50) } where
+  (Health h) = knightHealth k
+
+spell :: MyKnight -> MyKnight
+spell k = k{knightDefense =  Defense (d + 25) } where
+  (Defense d) = knightDefense k
+
+runaway :: MyMonster -> MyMonster
+runaway m = m{monsterHealth = Health 0}
 
 
 {-
