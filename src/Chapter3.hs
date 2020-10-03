@@ -342,6 +342,14 @@ afterwards.
 Define the Book product data type. You can take inspiration from our description
 of a book, but you are not limited only by the book properties we described.
 Create your own book type of your dreams!
+
+data Book = Book
+    { name :: String
+    , author :: String
+    , contents :: (Page, String)
+    }
+type Page = Int
+
 -}
 
 {- |
@@ -371,8 +379,26 @@ after the fight. The battle has the following possible outcomes:
  ⊛ Monster defeats the knight. In that case return -1
  ⊛ Neither the knight nor the monster wins. On such an occasion, the knight
    doesn't earn any money and keeps what they had before.
-
 -}
+data Status = Status
+    { health :: Int
+    , attack :: Int
+    , gold :: Gold
+    }
+
+type Gold = Int
+type Knight = Status
+type Monster = Status
+
+fight :: Knight -> Monster -> Gold
+fight k m
+    | health k <= 0 && health m <= 0 = 0
+    | health k <= 0 = -1
+    | health m <= 0 = gold m + gold k
+    | otherwise = fight k' m' where
+        m' = m{health = health m - attack k}
+        k' = if health m' <= 0 then k else k{health = health k - attack m}
+
 
 {- |
 =🛡= Sum types
@@ -459,6 +485,17 @@ and provide more flexibility when working with data types.
 Create a simple enumeration for the meal types (e.g. breakfast). The one who
 comes up with the most number of names wins the challenge. Use your creativity!
 -}
+data Foodstuff = Egg | Lettuce | Tomato | Potato | Bacon | Rice | Corn
+ deriving (Eq,Show)
+ 
+data HowCook = Boil | Bake | Steam
+ deriving (Eq,Show)
+
+data Breakfast = Single Foodstuff
+  | Mix (Foodstuff,HowCook)
+  | Toast [Foodstuff]
+  | Many [Breakfast]
+    deriving (Eq,Show)
 
 {- |
 =⚔️= Task 4
@@ -478,6 +515,34 @@ After defining the city, implement the following functions:
  ✦ buildWalls — build walls in the city. But since building walls is a
    complicated task, walls can be built only if the city has a castle
    and at least 10 living __people__ inside in all houses of the city totally.
+
+data Symbol = Church | Library deriving Eq
+
+data MagicalCity =
+    OnlyChurch Church [House]
+    | OnlyLibrary Library [House]
+    | CastleWithChurch Castle Wall Church [House]
+    | CastleWithLibrary Castle Wall Library [House
+    
+type Castle = String
+type Wall = String
+type Church = String
+type Library = String
+type House = String
+
+buildCastle :: String -> MagicalCity -> MagicalCity
+buildCastle name (OnlyChurch c hs) = CastleWithChurch name buildWalls c hs
+buildCastle name (OnlyLibrary l hs) = CastleWithLibrary name buildWalls l hs
+buildCastle name (CastleWithChurch x w c hs) = CastleWithChurch name w c hs
+buildCastle name (CastleWithLibrary x w l hs) = CastleWithChurch name w l hs
+
+buildHouse :: String -> MagicalCity -> MagicalCity
+buildHouse name (OnlyChurch c hs) = OnlyChurch c (name:hs)
+buildHouse name (OnlyLibrary l hs) = OnlyLibrary l (name:hs)
+buildHouse name (CastleWithChurch x w c hs) = CastleWithChurch x w c (name:hs)
+buildHouse name (CastleWithLibrary x w l hs) = CastleWithChurch x w l (name:hs)
+
+buildWalls = 1
 -}
 
 {-
@@ -560,22 +625,30 @@ introducing extra newtypes.
 🕯 HINT: if you complete this task properly, you don't need to change the
     implementation of the "hitPlayer" function at all!
 -}
+newtype Health = Health { unHealth :: Int } deriving (Eq, Show)
+newtype Strength = Strength { unStrength :: Int } deriving (Eq, Show)
+newtype Attack = Attack { unAttack :: Int } deriving (Eq, Show)
+newtype Armor = Armor { unArmor :: Int } deriving (Eq, Show)
+newtype Damage = Damage { unDamage :: Int } deriving (Eq, Show)
+newtype Defense = Defense { unDefense :: Int } deriving (Eq, Show)
+newtype Dexterity = Dexterity { unDexterity :: Int } deriving (Eq, Show)
+
 data Player = Player
-    { playerHealth    :: Int
-    , playerArmor     :: Int
-    , playerAttack    :: Int
-    , playerDexterity :: Int
-    , playerStrength  :: Int
+    { playerHealth    :: Health
+    , playerArmor     :: Armor
+    , playerAttack    :: Attack
+    , playerDexterity :: Dexterity
+    , playerStrength  :: Strength
     }
 
-calculatePlayerDamage :: Int -> Int -> Int
-calculatePlayerDamage attack strength = attack + strength
+calculatePlayerDamage :: Attack -> Strength -> Damage
+calculatePlayerDamage (Attack a) (Strength s) = Damage (a + s)
 
-calculatePlayerDefense :: Int -> Int -> Int
-calculatePlayerDefense armor dexterity = armor * dexterity
+calculatePlayerDefense :: Armor -> Dexterity -> Defense
+calculatePlayerDefense (Armor a) (Dexterity d) = Defense (a * d)
 
-calculatePlayerHit :: Int -> Int -> Int -> Int
-calculatePlayerHit damage defense health = health + defense - damage
+calculatePlayerHit :: Damage -> Defense -> Health -> Health
+calculatePlayerHit (Damage dm) (Defense df) (Health h) = Health (h + df - dm)
 
 -- The second player hits first player and the new first player is returned
 hitPlayer :: Player -> Player -> Player
@@ -752,6 +825,21 @@ parametrise data types in places where values can be of any general type.
 🕯 HINT: 'Maybe' that some standard types we mentioned above are useful for
   maybe-treasure ;)
 -}
+data Treasure = Treasure
+  { treasureGold :: Int
+  , treasureLoot :: Bool
+  } deriving (Eq, Show)
+
+data Dragon a = Dragon
+  { dragonName :: String
+  , power :: a
+  } deriving (Eq, Show)
+
+data Liar a = Liar
+  {
+    dragon :: Dragon a
+  , treasure :: Maybe Treasure
+  } deriving (Eq, Show)
 
 {-
 =🛡= Typeclasses
