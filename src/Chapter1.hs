@@ -217,8 +217,7 @@ True :: Bool
 
 A pair of boolean and char:
 >>> :t (True, 'x')
-(True, 'x') :: (Bool, Char)
-
+(True , 'x') :: (Bool, Char)
 Boolean negation:
 >>> :t not
 not :: Bool -> Bool
@@ -416,8 +415,7 @@ task is to specify the type of this function.
 >>> squareSum 3 4
 49
 -}
-
-squareSum :: Int -> Int -> Int
+squareSum :: Num a => a -> a -> a
 squareSum x y = (x + y) * (x + y)
 
 
@@ -468,7 +466,7 @@ Implement a function that returns the last digit of a given number.
 >>> lastDigit 42
 2
 
-🕯 HINT: Use the `mod` function
+🕯 HINT: use the `mod` function
 
 ♫ NOTE: You can discover possible functions to use via Hoogle:
     https://hoogle.haskell.org/
@@ -478,8 +476,8 @@ Implement a function that returns the last digit of a given number.
   results. Or you can try to guess the function name, search for it and check
   whether it works for you!
 -}
-lastDigit :: Int -> Int
-lastDigit n = mod (abs n) 10
+lastDigit :: Integral a => a -> a
+lastDigit n = mod v 10
 
 
 {- |
@@ -542,13 +540,12 @@ value after "=" where the condition is true.
 
 Casual reminder about adding top-level type signatures for all functions :)
 -}
-mid :: Int -> Int -> Int -> Int
+
+mid :: Ord a => a -> a -> a -> a
 mid x y z
-    | x <= z && z <= y = z
-    | y <= z && z <= x = z
-    | y <= x && x <= z = x
-    | z <= x && x <= y = x
-    | otherwise        = y
+     | min y z <= x && x <= max y z = x
+     | min x z <= y && y <= max x z = y
+     | min x y <= z && z <= max x y = z
 
 {- |
 =⚔️= Task 8
@@ -564,13 +561,12 @@ False
 -}
 isVowel :: Char -> Bool
 isVowel c
-    | c == 'a'  = True
-    | c == 'e'  = True
-    | c == 'i'  = True
-    | c == 'o'  = True
-    | c == 'u'  = True
-    | otherwise = False
-
+     | c == 'a' = True
+     | c == 'i' = True
+     | c == 'u' = True
+     | c == 'e' = True
+     | c == 'o' = True 
+     | otherwise = False
 
 {- |
 == Local variables and functions
@@ -632,12 +628,10 @@ Implement a function that returns the sum of the last two digits of a number.
 Try to introduce variables in this task (either with let-in or where) to avoid
 specifying complex expressions.
 -}
-sumLast2 :: Int -> Int
-sumLast2 n =
-    let lastTwo = mod (abs n) 100
-        (second, first) = divMod lastTwo 10
-    in second + first
-
+sumLast2 :: Integral a => a -> a
+sumLast2 n = a + b where
+    a = mod n 10
+    b = mod (mod n 100) 10
 
 {- |
 =💣= Task 10*
@@ -656,13 +650,10 @@ Implement a function that returns the first digit of a given number.
 You need to use recursion in this task. Feel free to return to it later, if you
 aren't ready for this boss yet!
 -}
-
-firstDigit :: Int -> Int
-firstDigit n = go (divMod (abs n) 10)
-  where
-    go :: (Int, Int) -> Int
-    go (0, lastD) = lastD
-    go (rest, _) = go (divMod rest 10)
+firstDigit :: Integral t => t -> t
+firstDigit n
+    | n < 10 = n
+    | otherwise = firstDigit (div n 10)
 
 {-
 You did it! Now it is time to the open pull request with your changes
