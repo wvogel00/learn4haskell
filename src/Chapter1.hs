@@ -477,7 +477,7 @@ Implement a function that returns the last digit of a given number.
   whether it works for you!
 -}
 lastDigit :: Integral a => a -> a
-lastDigit n = mod v 10
+lastDigit n = mod n 10
 
 
 {- |
@@ -546,6 +546,7 @@ mid x y z
      | min y z <= x && x <= max y z = x
      | min x z <= y && y <= max x z = y
      | min x y <= z && z <= max x y = z
+     | otherwise = z
 
 {- |
 =⚔️= Task 8
@@ -629,9 +630,8 @@ Try to introduce variables in this task (either with let-in or where) to avoid
 specifying complex expressions.
 -}
 sumLast2 :: Integral a => a -> a
-sumLast2 n = a + b where
-    a = mod n 10
-    b = mod (mod n 100) 10
+sumLast2 n = a+b where
+    (a,b) = divMod (mod n 100) 10
 
 {- |
 =💣= Task 10*
@@ -652,8 +652,8 @@ aren't ready for this boss yet!
 -}
 firstDigit :: Integral t => t -> t
 firstDigit n
-    | n < 10 = n
-    | otherwise = firstDigit (div n 10)
+    | abs n < 10 = n
+    | otherwise = firstDigit (div (abs n) 10)
 
 {-
 You did it! Now it is time to the open pull request with your changes
