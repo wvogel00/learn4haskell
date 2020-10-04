@@ -348,7 +348,9 @@ from it!
 ghci> :l src/Chapter2.hs
 -}
 subList :: Int -> Int -> [a] -> [a]
-subList n m xs = drop n $ take (m+1) xs
+subList n m xs = if n < 0 || m < 0
+  then []
+  else drop n $ take (m+1) xs
 
 {- |
 =⚔️= Task 4
@@ -362,7 +364,7 @@ Implement a function that returns only the first half of a given list.
 -}
 -- PUT THE FUNCTION TYPE IN HERE
 firstHalf :: [a] -> [a]
-firstHalf l = take (length xs `div` 2) l
+firstHalf xs = take (length xs `div` 2) xs
 
 {- |
 =🛡= Pattern matching
@@ -512,6 +514,7 @@ True
 >>> isThird42 [42, 42, 0, 42]
 False
 -}
+isThird42 :: (Num a, Eq a) => [a] -> Bool
 isThird42 (_:_:42:_) = True
 isThird42 _ = False
 
@@ -633,11 +636,10 @@ Write a function that takes elements of a list only on even positions.
 [2,3,4]
 -}
 takeEven :: [a] -> [a]
-takeEven xs = takeEven' 0 xs where
-   takeEven' _ [] = []
-   takeEven' i (x:xs) = if even i
-       then x:takeEven' (i+1) xs
-       else takeEven' (i+1) xs
+takeEven xs = takeEven' xs where
+    takeEven' [] = []
+    takeEven' [a] = [a]
+    takeEven' (a:b:xs) = a : takeEven' xs
    
 {- |
 =🛡= Higher-order functions
@@ -744,7 +746,7 @@ value of the element itself
 🕯 HINT: Use combination of 'map' and 'replicate'
 -}
 smartReplicate :: [Int] -> [Int]
-smartReplicate xs = concat $ map (\x -> replicate x x) xs
+smartReplicate = concatMap (\x -> replicate x x)
 
 {- |
 =⚔️= Task 9
@@ -758,7 +760,7 @@ the list with only those lists that contain a passed element.
 🕯 HINT: Use the 'elem' function to check whether an element belongs to a list
 -}
 contains :: (Foldable t, Eq a) => a -> [t a] -> [t a]
-contains v xss = filter (elem v) xss
+contains  = filter.elem
 
 {- |
 =🛡= Eta-reduction
@@ -800,9 +802,11 @@ divideTenBy :: Int -> Int
 divideTenBy x = div 10 x
 
 -- TODO: type ;)
-listElementsLessThan x l = filter (< x) l
+listElementsLessThan :: Ord a => a -> [a] -> [a]
+listElementsLessThan x = filter (< x)
 
 -- Can you eta-reduce this one???
+pairMul :: [Integer] -> [Integer] -> [Integer]
 pairMul = zipWith (*)
 
 {- |
@@ -859,7 +863,9 @@ list.
 🕯 HINT: Use the 'cycle' function
 -}
 rotate :: Int -> [a] -> [a]
-rotate k xs = take (length xs) . drop k $ cycle xs
+rotate k xs
+    | k < 0 = []
+    | otherwise = take (length xs) . drop k $ cycle xs
 
 {- |
 =💣= Task 12*
@@ -876,7 +882,9 @@ and reverses it.
   cheating!
 -}
 rewind [] = []
-rewind (x:xs) = rewind xs ++ [x]
+rewind (x:xs) = rewind' [x] xs where
+    rewind' xs [] = xs
+    rewind' xs (y:ys) = rewind' (y:xs) ys
 
 {-
 You did it! Now it is time to the open pull request with your changes
