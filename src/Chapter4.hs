@@ -486,7 +486,7 @@ Implement the Applicative instance for our 'Secret' data type from before.
 -}
 instance Applicative (Secret e) where
     pure :: a -> Secret e a
-    pure a = Reward a
+    pure = Reward
 
     (<*>) :: Secret e (a -> b) -> Secret e a -> Secret e b
     Trap e <*> v = Trap e
@@ -662,7 +662,10 @@ Can you implement a monad version of AND, polymorphic over any monad?
 🕯 HINT: Use "(>>=)", "pure" and anonymous function
 -}
 andM :: (Monad m) => m Bool -> m Bool -> m Bool
-andM a b = pure (&&) <*> a <*> b
+andM a b = a >>= andM'
+    where
+    andM' False = pure False
+    andM' True = b
 
 {- |
 =🐉= Task 9*: Final Dungeon Boss
@@ -714,9 +717,8 @@ instance Functor Tree where
     fmap f (Node tl tr) = Node (fmap f tl) (fmap f tr)
 
 reverseTree :: Tree a -> Tree a
-reverseTree (Node (Leaf a) (Leaf b)) = Node (Leaf b) (Leaf a)
+reverseTree (Leaf a) = Leaf a
 reverseTree (Node (Leaf a) tr) = Node (reverseTree tr) (Leaf a)
-reverseTree (Node tl (Leaf a)) = Node (Leaf a) (reverseTree tl)
 reverseTree (Node tl tr) = Node (reverseTree tr) (reverseTree tl) 
 
 convert :: Tree a -> [a]
